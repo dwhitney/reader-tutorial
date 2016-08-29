@@ -1,0 +1,15 @@
+.DS_Store
+.history
+
+target
+logs
+docker.log
+RUNNING_PID
+npm-debug.log
+
+# temp file
+.~*
+*~
+*.orig
+
+secret.conf
