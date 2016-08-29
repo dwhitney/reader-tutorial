@@ -12,10 +12,12 @@ import akka.stream.ActorMaterializer
 
 import io.circe.jawn.parse
 
-import cats.data.Xor
+import com.typesafe.config._
+import cats.data.{Reader,Xor}
 
 import models._
 import repository._
+import utils._
 
 class YahooFinanceService(
   yahooQuoteRepository: YahooQuoteRepository
@@ -46,10 +48,10 @@ class YahooFinanceService(
     }
   }
 
-  def pollAndUpdate(queueUrl: URL) = {
-    println(s"Polling $queueUrl")
+  def pollAndUpdate = {
+    println(s"Polling $yahooQueueURL")
     while(true){
-      val symbols = Await.result(yahooQueueService.dequeue(queueUrl,1), 25.seconds).toList
+      val symbols = Await.result(yahooQueueService.dequeue(yahooQueueURL,1), 25.seconds).toList
       symbols.foreach{
         case (receiptHandle,symbol) =>
           println(s"processing request for $symbol")
@@ -58,12 +60,32 @@ class YahooFinanceService(
             case Xor.Right(quote) => yahooQuoteRepository.insert(quote)
             case Xor.Left(_) => Future.successful(())
           }
-          .flatMap{ _ => yahooQueueService.deleteMessage(queueUrl, receiptHandle)}
+          .flatMap{ _ => yahooQueueService.deleteMessage(yahooQueueURL, receiptHandle)}
           .recoverWith{
-            case error => yahooQueueService.deleteMessage(queueUrl, receiptHandle)
+            case error => yahooQueueService.deleteMessage(yahooQueueURL, receiptHandle)
           }
       }
     }
+  }
+
+}
+
+
+object YahooFinanceService{
+
+  def load: Reader[Config,YahooFinanceService] = for{
+    yahooQuoteRepository <- YahooQuoteRepository.load
+    yahooQueueService    <- YahooQueueService.load
+    yahooQuoteQueueName  <- ConfigReader.getString("aws.sqs.yahoo-quote-queue-name")
+    actorComponents      <- ActorComponents.load
+  } yield {
+    implicit val ActorComponents(actorSystem, materializer) = actorComponents
+    val url = Await.result(yahooQueueService.createQueue(yahooQuoteQueueName), 25.seconds)
+    new YahooFinanceService(
+      yahooQuoteRepository
+    , yahooQueueService
+    , url
+    )
   }
 
 }

@@ -60,10 +60,22 @@ class YahooQueueService(
 
 }
 
+import com.typesafe.config.Config
+import cats.data.Reader
+import utils._
+
 object YahooQueueService{
 
   type URL = String
   type Symbol = String
   type ReceiptHandle = String
+
+  def load: Reader[Config,YahooQueueService] = for{
+    sqsClient <- Misc.SQSClient.load
+    actorComponents <- ActorComponents.load
+  } yield {
+    implicit val ActorComponents(actorSystem,materializer) = actorComponents
+    new YahooQueueService(sqsClient)
+  }
 
 }

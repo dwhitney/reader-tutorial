@@ -40,3 +40,19 @@ class Server(
     Http().bindAndHandle(route, host, port)
 
 }
+
+import com.typesafe.config._
+import cats.data.Reader
+import utils._
+
+object Server{
+
+  def load: Reader[Config,Server] = for{
+    yahooFinanceService <- YahooFinanceService.load
+    actorComponents     <- ActorComponents.load
+  } yield {
+    implicit val ActorComponents(actorSystem, materializer) = actorComponents
+    new Server(yahooFinanceService)
+  }
+
+}
