@@ -70,10 +70,9 @@ class YahooFinanceService(
 
 }
 
+object YahooFinanceService extends Memoizer[YahooFinanceService]{
 
-object YahooFinanceService{
-
-  def load: Reader[Config,YahooFinanceService] = for{
+  def reader: Reader[Config,YahooFinanceService] = for{
     yahooQuoteRepository <- YahooQuoteRepository.load
     yahooQueueService    <- YahooQueueService.load
     yahooQuoteQueueName  <- ConfigReader.getString("aws.sqs.yahoo-quote-queue-name")

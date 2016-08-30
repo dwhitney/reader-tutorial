@@ -1,13 +1,12 @@
 package tutorial
 
 import com.typesafe.config.ConfigFactory
-import cats.data.Reader
+import cats.data.{Kleisli,Reader,Xor}
 
 import services._
 import utils._
 
 object Main extends App{
-
 
   val reader = for{
     server              <- Server.load

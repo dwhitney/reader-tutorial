@@ -45,9 +45,9 @@ import com.typesafe.config._
 import cats.data.Reader
 import utils._
 
-object Server{
+object Server extends Memoizer[Server]{
 
-  def load: Reader[Config,Server] = for{
+  def reader: Reader[Config,Server] = for{
     yahooFinanceService <- YahooFinanceService.load
     actorComponents     <- ActorComponents.load
   } yield {

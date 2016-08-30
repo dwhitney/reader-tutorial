@@ -20,9 +20,9 @@ class YahooQuoteRepository(
 , val serializer: DynamoDBSerializer[YahooQuote]
 ) extends DynamoDBRepostory[YahooQuote]
 
-object YahooQuoteRepository{
+object YahooQuoteRepository extends Memoizer[YahooQuoteRepository]{
 
-  def load: Reader[Config,YahooQuoteRepository] = for{
+  def reader: Reader[Config,YahooQuoteRepository] = for{
     readCapacity    <- ConfigReader.getInt("aws.dynamodb.yahoo-quote.read-capacity")
     writeCapacity   <- ConfigReader.getInt("aws.dynamodb.yahoo-quote.write-capacity")
     yahooTableName  <- ConfigReader.getString("aws.dynamodb.yahoo-quote.table-name")

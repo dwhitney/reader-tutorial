@@ -12,9 +12,9 @@ case class ActorComponents(
 import cats.data.Reader
 import com.typesafe.config.Config
 
-object ActorComponents{
+object ActorComponents extends Memoizer[ActorComponents]{
 
-  def load: Reader[Config,ActorComponents] = for{
+  def reader: Reader[Config,ActorComponents] = for{
     actorSystemName <- ConfigReader.getString("actors.system_name")
   } yield {
     implicit val actorSystem = ActorSystem(actorSystemName)

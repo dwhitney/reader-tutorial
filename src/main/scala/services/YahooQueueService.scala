@@ -64,13 +64,13 @@ import com.typesafe.config.Config
 import cats.data.Reader
 import utils._
 
-object YahooQueueService{
+object YahooQueueService extends Memoizer[YahooQueueService]{
 
   type URL = String
   type Symbol = String
   type ReceiptHandle = String
 
-  def load: Reader[Config,YahooQueueService] = for{
+  def reader: Reader[Config,YahooQueueService] = for{
     sqsClient <- Misc.SQSClient.load
     actorComponents <- ActorComponents.load
   } yield {
